@@ -23,7 +23,7 @@ export const DayArcStrip: React.FC<DayArcStripProps> = ({
     panchanga;
 
   const rahu = entries.find((e) => e.id === 'rahu-kalam');
-  const abhijit = entries.find((e) => e.id === 'abhijit-muhurta');
+  const madhyana = entries.find((e) => e.id === 'madhyana-kala');
   const nishita = entries.find((e) => e.id === 'nishita-kala');
 
   // 24-hour solar cycle bar spanning from today's sunrise to tomorrow's sunrise
@@ -49,11 +49,11 @@ export const DayArcStrip: React.FC<DayArcStripProps> = ({
       endPct: toPct(rahu.endMs),
       colorClass: 'bg-rose-500/80 dark:bg-rose-400/80',
     },
-    abhijit && {
-      label: 'Abhijit Muhurta',
-      startPct: toPct(abhijit.startMs),
-      endPct: toPct(abhijit.endMs),
-      colorClass: 'bg-emerald-600/85 dark:bg-emerald-400/85',
+    madhyana && {
+      label: 'Madhyana Kala',
+      startPct: toPct(madhyana.startMs),
+      endPct: toPct(madhyana.endMs),
+      colorClass: 'bg-amber-600/85 dark:bg-amber-400/85',
     },
     nishita && {
       label: 'Nishita Kala',
@@ -114,15 +114,15 @@ export const DayArcStrip: React.FC<DayArcStripProps> = ({
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4">
           <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            Abhijit Muhurta
+            Madhyana Kala
           </div>
-          <div className="mt-1.5 font-mono tabular-nums text-lg font-semibold text-emerald-700 dark:text-emerald-400">
-            {abhijit
-              ? formatEntryTimeRange(abhijit, location.timezone, showAllSeconds)
+          <div className="mt-1.5 font-mono tabular-nums text-lg font-semibold text-amber-700 dark:text-amber-400">
+            {madhyana
+              ? formatEntryTimeRange(madhyana, location.timezone, showAllSeconds)
               : '—'}
           </div>
           <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            {abhijit ? `${abhijit.formulaNote} · Auspicious` : 'Unavailable'}
+            {madhyana ? `${madhyana.formulaNote} · Midday` : 'Unavailable'}
           </div>
         </div>
 
@@ -154,8 +154,8 @@ export const DayArcStrip: React.FC<DayArcStripProps> = ({
                 Rahu Kalam
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600/85 inline-block" />
-                Abhijit
+                <span className="w-2.5 h-2.5 rounded-xs bg-amber-600/85 inline-block" />
+                Madhyana Kala
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-xs bg-blue-600/85 inline-block" />
