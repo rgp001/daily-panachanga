@@ -1,0 +1,6 @@
+{
+  "name": "Home Panchanga",
+  "description": "Daily Panchanga and Muhurat timing table with Bengaluru preset, city search, custom latitude/longitude coordinates, and 7-day outlook.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
