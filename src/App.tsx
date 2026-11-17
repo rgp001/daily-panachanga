@@ -83,7 +83,6 @@ export default function App() {
     getInitialDate(getInitialLocation().timezone)
   );
   const [activeView, setActiveView] = useState<ActiveView>('daily');
-  const [showAllSeconds, setShowAllSeconds] = useState<boolean>(false);
   const [tvMode, setTvMode] = useState<boolean>(false);
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
   const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -115,14 +114,11 @@ export default function App() {
     }
   }, [location]);
 
-  // Live clock tick every 15 seconds (and every second when precision seconds view is active)
+  // Live clock tick every second for the header clock
   useEffect(() => {
-    const interval = setInterval(
-      () => setNowMs(Date.now()),
-      showAllSeconds ? 1000 : 15000
-    );
+    const interval = setInterval(() => setNowMs(Date.now()), 1000);
     return () => clearInterval(interval);
-  }, [showAllSeconds]);
+  }, []);
 
   const panchanga = useMemo(
     () => calculateDailyPanchanga(dateStr, location),
@@ -326,7 +322,6 @@ export default function App() {
           panchanga={panchanga}
           nowMs={nowMs}
           isToday={isToday}
-          showAllSeconds={showAllSeconds}
         />
 
         {/* Primary Tabular Display */}
@@ -335,8 +330,6 @@ export default function App() {
             panchanga={panchanga}
             nowMs={nowMs}
             isToday={isToday}
-            showAllSeconds={showAllSeconds}
-            onToggleSeconds={() => setShowAllSeconds((s) => !s)}
             tvMode={tvMode}
             onToggleTvMode={() => setTvMode((t) => !t)}
           />
@@ -344,7 +337,6 @@ export default function App() {
           <WeeklyOutlookTable
             startDateStr={dateStr}
             location={location}
-            showAllSeconds={showAllSeconds}
             onSelectDate={(chosenDate) => {
               setDateStr(chosenDate);
               setActiveView('daily');

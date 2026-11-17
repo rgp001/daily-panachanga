@@ -21,8 +21,6 @@ interface PanchangaTableProps {
   panchanga: DailyPanchanga;
   nowMs: number;
   isToday: boolean;
-  showAllSeconds: boolean;
-  onToggleSeconds: () => void;
   tvMode: boolean;
   onToggleTvMode: () => void;
 }
@@ -58,8 +56,6 @@ export const PanchangaTable: React.FC<PanchangaTableProps> = ({
   panchanga,
   nowMs,
   isToday,
-  showAllSeconds,
-  onToggleSeconds,
   tvMode,
   onToggleTvMode,
 }) => {
@@ -91,8 +87,7 @@ export const PanchangaTable: React.FC<PanchangaTableProps> = ({
         (entry) =>
           `${entry.name}: ${formatEntryTimeRange(
             entry,
-            panchanga.location.timezone,
-            showAllSeconds
+            panchanga.location.timezone
           )} (${entry.natureLabel})`
       ),
     ];
@@ -182,20 +177,6 @@ export const PanchangaTable: React.FC<PanchangaTableProps> = ({
             ))}
           </div>
 
-          {/* Alexa Rounding vs Exact Seconds Toggle */}
-          <button
-            type="button"
-            onClick={onToggleSeconds}
-            aria-pressed={showAllSeconds}
-            className={`px-3 py-2 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap shrink-0 ${
-              showAllSeconds
-                ? 'bg-blue-700 text-white border-blue-700'
-                : 'bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            {showAllSeconds ? 'Precision: HH:MM:SS' : 'Precision: Alexa Match'}
-          </button>
-
           {/* TV / Echo Show Large Font Toggle */}
           <button
             type="button"
@@ -259,8 +240,7 @@ export const PanchangaTable: React.FC<PanchangaTableProps> = ({
               const isActive = status === 'active';
               const timeDisplay = formatEntryTimeRange(
                 entry,
-                panchanga.location.timezone,
-                showAllSeconds
+                panchanga.location.timezone
               );
 
               return (

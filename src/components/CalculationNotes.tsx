@@ -39,8 +39,8 @@ export const CalculationNotes: React.FC = () => {
     },
     {
       name: 'Rounding Convention',
-      rule: 'Alexa Skill Parity (+30s round-to-minute)',
-      detail: 'Interval windows round to the nearest minute (HH:MM) to match your Alexa voice output; Solar Noon and Solar Midnight display exact seconds (HH:MM:SS).',
+      rule: 'Standard Minute Rounding (+30s)',
+      detail: 'Interval windows round to the nearest minute (HH:MM); Sunrise, Sunset, Solar Noon, and Solar Midnight display exact seconds (HH:MM:SS).',
     },
   ];
 
@@ -55,7 +55,7 @@ export const CalculationNotes: React.FC = () => {
           Astronomical Methodology
         </h2>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Every interval is computed directly from local solar ephemeris equations matching your Alexa skill (`astral` 3.2 solar depression &amp; rounding logic).
+          Every interval is computed directly from local solar ephemeris equations (Astral / NOAA apparent horizon depression &amp; rounding logic).
         </p>
       </div>
 

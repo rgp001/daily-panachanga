@@ -800,7 +800,7 @@ export function calculateDailyPanchanga(
 export function formatEntryTimeRange(
   entry: PanchangaEntry,
   timezone: string,
-  showAllSeconds: boolean
+  showAllSeconds: boolean = false
 ): string {
   if (entry.isInstant) {
     return showAllSeconds || entry.alexaUsesSeconds

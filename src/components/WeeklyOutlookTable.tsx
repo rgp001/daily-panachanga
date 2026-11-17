@@ -13,14 +13,12 @@ import {
 interface WeeklyOutlookTableProps {
   startDateStr: string;
   location: GeoLocation;
-  showAllSeconds: boolean;
   onSelectDate: (dateStr: string) => void;
 }
 
 export const WeeklyOutlookTable: React.FC<WeeklyOutlookTableProps> = ({
   startDateStr,
   location,
-  showAllSeconds,
   onSelectDate,
 }) => {
   const days = useMemo(() => {
@@ -38,7 +36,7 @@ export const WeeklyOutlookTable: React.FC<WeeklyOutlookTableProps> = ({
   ) => {
     const entry = p.entries.find((e) => e.id === id);
     if (!entry) return '—';
-    return formatEntryTimeRange(entry, location.timezone, showAllSeconds);
+    return formatEntryTimeRange(entry, location.timezone);
   };
 
   return (

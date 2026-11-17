@@ -10,14 +10,12 @@ interface DayArcStripProps {
   panchanga: DailyPanchanga;
   nowMs: number;
   isToday: boolean;
-  showAllSeconds: boolean;
 }
 
 export const DayArcStrip: React.FC<DayArcStripProps> = ({
   panchanga,
   nowMs,
   isToday,
-  showAllSeconds,
 }) => {
   const { location, entries, sunriseMs, sunsetMs, daylightDurationMs, nightDurationMs } =
     panchanga;
@@ -104,7 +102,7 @@ export const DayArcStrip: React.FC<DayArcStripProps> = ({
           </div>
           <div className="mt-1.5 font-mono tabular-nums text-lg font-semibold text-rose-700 dark:text-rose-400">
             {rahu
-              ? formatEntryTimeRange(rahu, location.timezone, showAllSeconds)
+              ? formatEntryTimeRange(rahu, location.timezone)
               : '—'}
           </div>
           <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -118,7 +116,7 @@ export const DayArcStrip: React.FC<DayArcStripProps> = ({
           </div>
           <div className="mt-1.5 font-mono tabular-nums text-lg font-semibold text-amber-700 dark:text-amber-400">
             {madhyana
-              ? formatEntryTimeRange(madhyana, location.timezone, showAllSeconds)
+              ? formatEntryTimeRange(madhyana, location.timezone)
               : '—'}
           </div>
           <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -132,7 +130,7 @@ export const DayArcStrip: React.FC<DayArcStripProps> = ({
           </div>
           <div className="mt-1.5 font-mono tabular-nums text-lg font-semibold text-blue-700 dark:text-blue-400">
             {nishita
-              ? formatEntryTimeRange(nishita, location.timezone, showAllSeconds)
+              ? formatEntryTimeRange(nishita, location.timezone)
               : '—'}
           </div>
           <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
