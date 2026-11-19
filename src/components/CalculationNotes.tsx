@@ -38,6 +38,21 @@ export const CalculationNotes: React.FC = () => {
       detail: 'The 8th of 15 equal nighttime Muhurtas between today’s sunset and next morning’s sunrise, centered on solar midnight.',
     },
     {
+      name: 'Tithi & Paksha',
+      rule: '12° Moon–Sun elongation steps',
+      detail: 'Evaluated at local sunrise using Jean Meeus lunar and solar longitudes (Shukla Paksha 0°–180°, Krishna Paksha 180°–360°), with exact transition times.',
+    },
+    {
+      name: 'Nakshatra & Pada',
+      rule: '27 lunar mansions (13°20′ each)',
+      detail: 'Computed from the Moon’s sidereal longitude using the Chitrapaksha (Lahiri) Ayanamsha at local sunrise, including Pada (quarter) and end time.',
+    },
+    {
+      name: 'Samvatsara, Ayana, Masa & Ritu',
+      rule: '60-year Jovian cycle · Solstice Ayana · Amanta Masa',
+      detail: 'Samvatsara and Shaka year update at Chaitra Shukla Pratipada; Ayana follows solar solstices (Uttarayana / Dakshinayana); Masa follows the South Indian Amanta convention with Adhika/Nija detection.',
+    },
+    {
       name: 'Rounding Convention',
       rule: 'Standard Minute Rounding (+30s)',
       detail: 'Interval windows round to the nearest minute (HH:MM); Sunrise, Sunset, Solar Noon, and Solar Midnight display exact seconds (HH:MM:SS).',

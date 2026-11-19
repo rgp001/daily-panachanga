@@ -3,9 +3,11 @@ import { Moon, Sun } from 'lucide-react';
 import { CalculationNotes } from './components/CalculationNotes';
 import { DayArcStrip } from './components/DayArcStrip';
 import { LocationDateBar } from './components/LocationDateBar';
+import { PanchangaElementsStrip } from './components/PanchangaElementsStrip';
 import { PanchangaTable } from './components/PanchangaTable';
 import { WeeklyOutlookTable } from './components/WeeklyOutlookTable';
 import { PRESET_CITIES } from './data/cities';
+import { calculatePanchangaDetails } from './lib/panchanga';
 import {
   BENGALURU_PRESET,
   calculateDailyPanchanga,
@@ -124,6 +126,11 @@ export default function App() {
     () => calculateDailyPanchanga(dateStr, location),
     [dateStr, location]
   );
+
+  const panchangaDetails = useMemo(() => {
+    const refMs = panchanga.sunriseMs ?? panchanga.solarNoonMs;
+    return refMs !== null ? calculatePanchangaDetails(refMs) : null;
+  }, [panchanga.sunriseMs, panchanga.solarNoonMs]);
 
   const todayInTz = getTodayYMDInTimezone(location.timezone);
   const isToday = dateStr === todayInTz;
@@ -315,6 +322,17 @@ export default function App() {
           dateStr={dateStr}
           onLocationChange={handleLocationChange}
           onDateChange={setDateStr}
+        />
+
+        {/* Daily Panchanga Elements: Samvatsara, Ayana, Ritu, Masa, Paksha, Vara, Tithi, Nakshatra */}
+        <PanchangaElementsStrip
+          details={panchangaDetails}
+          dateStr={dateStr}
+          weekdayName={panchanga.weekdayName}
+          varaName={panchanga.varaName}
+          timezone={location.timezone}
+          nextSunriseMs={panchanga.nextSunriseMs}
+          tvMode={tvMode}
         />
 
         {/* Key Summary Cards + Solar Timeline */}
