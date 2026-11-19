@@ -4,7 +4,15 @@
  * Chitrapaksha (Lahiri) Ayanamsha.
  */
 
-import { formatTime, getLocalTimeParts, roundToMinuteMs } from './astral';
+import {
+  formatTime,
+  getLocalTimeParts,
+  getLocalYMD,
+  parseYMD,
+  roundToMinuteMs,
+  type GeoLocation,
+  type PanchangaEntry,
+} from './astral';
 
 export interface TithiInfo {
   index: number; // 0..29 (0-14 Shukla, 15-29 Krishna)
@@ -612,3 +620,317 @@ export function formatTransitionEnd(
   const timeStr = formatTime(rounded, timezone);
   return endYMD !== dateStr ? `upto ${timeStr} (next day)` : `upto ${timeStr}`;
 }
+
+// ---------- Moonrise & Moonset (Meeus Ch. 15 & Ch. 47) ----------
+
+const LUNAR_LAT_TERMS: ReadonlyArray<readonly [number, number, number, number, number]> = [
+  [0, 0, 0, 1, 5128122],
+  [0, 0, 1, 1, 280602],
+  [0, 0, 1, -1, 277693],
+  [2, 0, 0, -1, 173237],
+  [2, 0, -1, 1, 55413],
+  [2, 0, -1, -1, 46271],
+  [2, 0, 0, 1, 32573],
+  [0, 0, 2, 1, 17198],
+  [2, 0, 1, -1, 9266],
+  [0, 0, 2, -1, 8822],
+  [2, -1, 0, -1, 8216],
+  [2, 0, -2, -1, 4324],
+  [2, 0, 1, 1, 4200],
+  [2, 1, 0, -1, -3359],
+  [2, -1, -1, 1, 2463],
+  [2, -1, 0, 1, 2211],
+  [2, -1, -1, -1, 2065],
+  [0, 1, -1, -1, -1870],
+  [4, 0, -1, -1, 1828],
+  [0, 1, 0, 1, -1794],
+  [0, 0, 0, 3, -1749],
+  [0, 1, -1, 1, -1565],
+  [1, 0, 0, 1, -1491],
+  [0, 1, 1, 1, -1475],
+  [0, 1, 1, -1, -1410],
+];
+
+const LUNAR_DIST_TERMS: ReadonlyArray<readonly [number, number, number, number, number]> = [
+  [0, 0, 1, 0, -20905355],
+  [2, 0, -1, 0, -3699111],
+  [2, 0, 0, 0, -2955968],
+  [0, 0, 2, 0, -569925],
+  [0, 1, 0, 0, 48888],
+  [0, 0, 0, 2, -3149],
+  [2, 0, -2, 0, 246158],
+  [2, -1, -1, 0, -152138],
+  [2, 0, 1, 0, -170733],
+  [2, -1, 0, 0, -204586],
+  [0, 1, -1, 0, -129620],
+  [1, 0, 0, 0, 108743],
+  [0, 1, 1, 0, 104755],
+  [2, 0, 0, -2, 79661],
+  [0, 0, 3, 0, -34782],
+];
+
+function moonHorizonResidualDeg(
+  ms: number,
+  latitude: number,
+  longitude: number
+): number {
+  const t = jCenturyFromMs(ms);
+  const t2 = t * t;
+  const t3 = t2 * t;
+  const t4 = t3 * t;
+
+  const lp = norm360(
+    218.3164477 +
+      481267.88123421 * t -
+      0.0015786 * t2 +
+      t3 / 538841 -
+      t4 / 65194000
+  );
+  const d = norm360(
+    297.8501921 +
+      445267.1114034 * t -
+      0.0018819 * t2 +
+      t3 / 545868 -
+      t4 / 113065000
+  );
+  const m = norm360(
+    357.5291092 + 35999.0502909 * t - 0.0001536 * t2 + t3 / 24490000
+  );
+  const mp = norm360(
+    134.9633964 +
+      477198.8675055 * t +
+      0.0087414 * t2 +
+      t3 / 69699 -
+      t4 / 14712000
+  );
+  const f = norm360(
+    93.272095 +
+      483202.0175233 * t -
+      0.0036539 * t2 -
+      t3 / 3526000 +
+      t4 / 863310000
+  );
+
+  const a1 = norm360(119.75 + 131.849 * t);
+  const a2 = norm360(53.09 + 479264.29 * t);
+  const a3 = norm360(313.45 + 481266.484 * t);
+  const e = 1 - 0.002516 * t - 0.0000074 * t2;
+  const e2 = e * e;
+
+  let sumL = 0;
+  for (const [cd, cm, cmp, cf, coeff] of LUNAR_LONG_TERMS) {
+    const arg = (cd * d + cm * m + cmp * mp + cf * f) * DEG;
+    let term = coeff * Math.sin(arg);
+    if (Math.abs(cm) === 1) term *= e;
+    else if (Math.abs(cm) === 2) term *= e2;
+    sumL += term;
+  }
+  sumL +=
+    3958 * Math.sin(a1 * DEG) +
+    1962 * Math.sin((lp - f) * DEG) +
+    318 * Math.sin(a2 * DEG);
+
+  let sumB = 0;
+  for (const [cd, cm, cmp, cf, coeff] of LUNAR_LAT_TERMS) {
+    const arg = (cd * d + cm * m + cmp * mp + cf * f) * DEG;
+    let term = coeff * Math.sin(arg);
+    if (Math.abs(cm) === 1) term *= e;
+    else if (Math.abs(cm) === 2) term *= e2;
+    sumB += term;
+  }
+  sumB +=
+    -2235 * Math.sin(lp * DEG) +
+    382 * Math.sin(a3 * DEG) +
+    175 * Math.sin((a1 - f) * DEG) +
+    175 * Math.sin((a1 + f) * DEG) +
+    127 * Math.sin((lp - mp) * DEG) -
+    115 * Math.sin((lp + mp) * DEG);
+
+  let sumR = 0;
+  for (const [cd, cm, cmp, cf, coeff] of LUNAR_DIST_TERMS) {
+    const arg = (cd * d + cm * m + cmp * mp + cf * f) * DEG;
+    let term = coeff * Math.cos(arg);
+    if (Math.abs(cm) === 1) term *= e;
+    else if (Math.abs(cm) === 2) term *= e2;
+    sumR += term;
+  }
+
+  // Nutation & true obliquity of the ecliptic
+  const omega = 125.04452 - 1934.136261 * t;
+  const sunMeanLong = 280.4665 + 36000.7698 * t;
+  const deltaPsiDeg =
+    (-17.2 / 3600) * Math.sin(omega * DEG) -
+    (1.32 / 3600) * Math.sin(2 * sunMeanLong * DEG);
+  const deltaEpsDeg =
+    (9.2 / 3600) * Math.cos(omega * DEG) +
+    (0.57 / 3600) * Math.cos(2 * sunMeanLong * DEG);
+  const eps0 = 23 + 26 / 60 + (21.448 - t * (46.815 + t * (0.00059 - t * 0.001813))) / 3600;
+  const eps = eps0 + deltaEpsDeg;
+
+  const lambda = norm360(lp + sumL / 1_000_000 + deltaPsiDeg);
+  const beta = sumB / 1_000_000;
+  const distKm = 385000.56 + sumR / 1000;
+  const parallaxDeg = Math.asin(6378.14 / distKm) / DEG;
+
+  // Ecliptic to equatorial coordinates
+  const lamR = lambda * DEG;
+  const betR = beta * DEG;
+  const epsR = eps * DEG;
+
+  const raDeg = norm360(
+    Math.atan2(
+      Math.sin(lamR) * Math.cos(epsR) - Math.tan(betR) * Math.sin(epsR),
+      Math.cos(lamR)
+    ) / DEG
+  );
+  const decRad = Math.asin(
+    Math.sin(betR) * Math.cos(epsR) +
+      Math.cos(betR) * Math.sin(epsR) * Math.sin(lamR)
+  );
+
+  // Greenwich Apparent Sidereal Time -> Local Hour Angle
+  const jd = jdFromMs(ms);
+  const gmstDeg = norm360(
+    280.46061837 +
+      360.98564736629 * (jd - 2451545.0) +
+      0.000387933 * t2 -
+      t3 / 38710000
+  );
+  const gastDeg = norm360(gmstDeg + deltaPsiDeg * Math.cos(epsR));
+  const localHourAngleDeg = norm360(gastDeg + longitude - raDeg);
+
+  const latR = latitude * DEG;
+  const sinAlt =
+    Math.sin(latR) * Math.sin(decRad) +
+    Math.cos(latR) * Math.cos(decRad) * Math.cos(localHourAngleDeg * DEG);
+  const geoAltDeg = Math.asin(Math.max(-1, Math.min(1, sinAlt))) / DEG;
+
+  // Meeus Ch. 15 Moon apparent upper-limb horizon altitude: h0 = 0.7275 * pi - 34'
+  const h0 = 0.7275 * parallaxDeg - 34 / 60;
+  return geoAltDeg - h0;
+}
+
+export interface MoonRiseSetResult {
+  moonriseMs: number | null;
+  moonsetMs: number | null;
+}
+
+/**
+ * Calculates local Moonrise and Moonset timestamps occurring on calendar date
+ * `dateStr` in `location.timezone`. Returns `null` if the Moon does not rise/set
+ * during that 24-hour calendar day.
+ */
+export function calculateMoonRiseAndSet(
+  dateStr: string,
+  location: GeoLocation
+): MoonRiseSetResult {
+  const { year, month, day } = parseYMD(dateStr);
+  const baseUtc = Date.UTC(year, month - 1, day, 0, 0, 0);
+  const searchStart = baseUtc - 16 * 3_600_000;
+  const searchEnd = baseUtc + 38 * 3_600_000;
+  const stepMs = 10 * 60_000;
+
+  let moonriseMs: number | null = null;
+  let moonsetMs: number | null = null;
+
+  let prevMs = searchStart;
+  let prevVal = moonHorizonResidualDeg(
+    prevMs,
+    location.latitude,
+    location.longitude
+  );
+
+  for (let t = searchStart + stepMs; t <= searchEnd; t += stepMs) {
+    const currVal = moonHorizonResidualDeg(
+      t,
+      location.latitude,
+      location.longitude
+    );
+
+    // Rising crossing
+    if (prevVal < 0 && currVal >= 0) {
+      let lo = prevMs;
+      let hi = t;
+      for (let i = 0; i < 22; i++) {
+        const mid = (lo + hi) / 2;
+        if (
+          moonHorizonResidualDeg(mid, location.latitude, location.longitude) < 0
+        ) {
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+      const crossing = (lo + hi) / 2;
+      if (getLocalYMD(crossing, location.timezone) === dateStr && moonriseMs === null) {
+        moonriseMs = crossing;
+      }
+    }
+
+    // Setting crossing
+    if (prevVal >= 0 && currVal < 0) {
+      let lo = prevMs;
+      let hi = t;
+      for (let i = 0; i < 22; i++) {
+        const mid = (lo + hi) / 2;
+        if (
+          moonHorizonResidualDeg(mid, location.latitude, location.longitude) >= 0
+        ) {
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+      const crossing = (lo + hi) / 2;
+      if (getLocalYMD(crossing, location.timezone) === dateStr && moonsetMs === null) {
+        moonsetMs = crossing;
+      }
+    }
+
+    prevMs = t;
+    prevVal = currVal;
+  }
+
+  return { moonriseMs, moonsetMs };
+}
+
+export function buildLunarEntries(moonRiseSet: MoonRiseSetResult): PanchangaEntry[] {
+  const entries: PanchangaEntry[] = [];
+
+  if (moonRiseSet.moonriseMs !== null) {
+    entries.push({
+      id: 'moonrise',
+      name: 'Moonrise',
+      sanskritName: 'चन्द्रोदय (Chandrodaya)',
+      nature: 'lunar',
+      natureLabel: 'Lunar Event',
+      isInstant: true,
+      startMs: moonRiseSet.moonriseMs,
+      endMs: moonRiseSet.moonriseMs,
+      crossesMidnight: false,
+      formulaNote: 'Lunar upper-limb horizon (0.7275π − 34′)',
+      description: 'Local apparent rising of the Moon’s upper limb above the eastern horizon.',
+      alexaUsesSeconds: false,
+    });
+  }
+
+  if (moonRiseSet.moonsetMs !== null) {
+    entries.push({
+      id: 'moonset',
+      name: 'Moonset',
+      sanskritName: 'चन्द्रास्त (Chandrastamaya)',
+      nature: 'lunar',
+      natureLabel: 'Lunar Event',
+      isInstant: true,
+      startMs: moonRiseSet.moonsetMs,
+      endMs: moonRiseSet.moonsetMs,
+      crossesMidnight: false,
+      formulaNote: 'Lunar upper-limb horizon (0.7275π − 34′)',
+      description: 'Local apparent setting of the Moon’s upper limb below the western horizon.',
+      alexaUsesSeconds: false,
+    });
+  }
+
+  return entries;
+}
+

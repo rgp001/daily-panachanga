@@ -7,7 +7,11 @@ import { PanchangaElementsStrip } from './components/PanchangaElementsStrip';
 import { PanchangaTable } from './components/PanchangaTable';
 import { WeeklyOutlookTable } from './components/WeeklyOutlookTable';
 import { PRESET_CITIES } from './data/cities';
-import { calculatePanchangaDetails } from './lib/panchanga';
+import {
+  buildLunarEntries,
+  calculateMoonRiseAndSet,
+  calculatePanchangaDetails,
+} from './lib/panchanga';
 import {
   BENGALURU_PRESET,
   calculateDailyPanchanga,
@@ -122,10 +126,26 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const panchanga = useMemo(
+  const basePanchanga = useMemo(
     () => calculateDailyPanchanga(dateStr, location),
     [dateStr, location]
   );
+
+  const moonRiseSet = useMemo(
+    () => calculateMoonRiseAndSet(dateStr, location),
+    [dateStr, location]
+  );
+
+  const panchanga = useMemo(() => {
+    const lunarEntries = buildLunarEntries(moonRiseSet);
+    const mergedEntries = [...basePanchanga.entries, ...lunarEntries].sort(
+      (a, b) => a.startMs - b.startMs
+    );
+    return {
+      ...basePanchanga,
+      entries: mergedEntries,
+    };
+  }, [basePanchanga, moonRiseSet]);
 
   const panchangaDetails = useMemo(() => {
     const refMs = panchanga.sunriseMs ?? panchanga.solarNoonMs;
@@ -338,6 +358,7 @@ export default function App() {
         {/* Key Summary Cards + Solar Timeline */}
         <DayArcStrip
           panchanga={panchanga}
+          moonRiseSet={moonRiseSet}
           nowMs={nowMs}
           isToday={isToday}
         />

@@ -8,6 +8,11 @@ export const CalculationNotes: React.FC = () => {
       detail: 'Computes local apparent sunrise for the chosen date and the following morning sunrise for nighttime calculations.',
     },
     {
+      name: 'Moonrise & Moonset',
+      rule: 'Meeus lunar ephemeris (h₀ = 0.7275π − 34′)',
+      detail: 'Accounts for lunar ecliptic latitude, equatorial parallax, refraction, and semi-diameter across the selected calendar day.',
+    },
+    {
       name: 'Rahu Kalam',
       rule: '1/8th of Dinamana (Sunset − Sunrise)',
       detail: 'Weekday slot order (Mon → Sun): 2nd, 7th, 5th, 6th, 4th, 3rd, 8th segment of daylight.',

@@ -12,7 +12,7 @@ export interface GeoLocation {
   timezone: string;
 }
 
-export type TimingNature = 'auspicious' | 'inauspicious' | 'neutral' | 'solar';
+export type TimingNature = 'auspicious' | 'inauspicious' | 'neutral' | 'solar' | 'lunar';
 
 export interface PanchangaEntry {
   id: string;
@@ -361,7 +361,7 @@ export function getTodayYMDInTimezone(timezone: string): string {
   return `${year}-${month}-${day}`;
 }
 
-function getLocalYMD(ms: number, timezone: string): string {
+export function getLocalYMD(ms: number, timezone: string): string {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: timezone,
     year: 'numeric',

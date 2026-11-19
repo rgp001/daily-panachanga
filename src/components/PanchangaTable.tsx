@@ -49,6 +49,8 @@ function natureTextClass(nature: TimingNature): string {
       return 'text-amber-700 dark:text-amber-400';
     case 'solar':
       return 'text-blue-700 dark:text-blue-400';
+    case 'lunar':
+      return 'text-indigo-700 dark:text-indigo-400';
   }
 }
 
@@ -77,7 +79,9 @@ export const PanchangaTable: React.FC<PanchangaTableProps> = ({
     if (filter === 'inauspicious') {
       return panchanga.entries.filter((e) => e.nature === 'inauspicious');
     }
-    return panchanga.entries.filter((e) => e.nature === 'solar');
+    return panchanga.entries.filter(
+      (e) => e.nature === 'solar' || e.nature === 'lunar'
+    );
   }, [panchanga.entries, filter]);
 
   const handleCopyTable = async () => {
@@ -157,7 +161,7 @@ export const PanchangaTable: React.FC<PanchangaTableProps> = ({
                 { id: 'all', label: 'All Timings' },
                 { id: 'auspicious', label: 'Auspicious' },
                 { id: 'inauspicious', label: 'Inauspicious' },
-                { id: 'solar', label: 'Solar Events' },
+                { id: 'solar', label: 'Sun & Moon' },
               ] as const
             ).map((tab) => (
               <button

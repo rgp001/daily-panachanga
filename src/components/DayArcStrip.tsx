@@ -2,18 +2,23 @@ import React from 'react';
 import {
   formatDuration,
   formatEntryTimeRange,
+  formatTime,
   formatTimeWithSeconds,
+  roundToMinuteMs,
   type DailyPanchanga,
 } from '../lib/astral';
+import type { MoonRiseSetResult } from '../lib/panchanga';
 
 interface DayArcStripProps {
   panchanga: DailyPanchanga;
+  moonRiseSet: MoonRiseSetResult;
   nowMs: number;
   isToday: boolean;
 }
 
 export const DayArcStrip: React.FC<DayArcStripProps> = ({
   panchanga,
+  moonRiseSet,
   nowMs,
   isToday,
 }) => {
@@ -93,6 +98,24 @@ export const DayArcStrip: React.FC<DayArcStripProps> = ({
             {daylightDurationMs !== null && nightDurationMs !== null
               ? `Day ${formatDuration(daylightDurationMs)} · Night ${formatDuration(nightDurationMs)}`
               : 'No horizon crossing'}
+          </div>
+          <div className="mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 font-mono tabular-nums">
+            <span className="font-sans text-slate-500 dark:text-slate-400 mr-1.5">
+              Moon:
+            </span>
+            <span>
+              ↑{' '}
+              {moonRiseSet.moonriseMs !== null
+                ? formatTime(roundToMinuteMs(moonRiseSet.moonriseMs), location.timezone)
+                : 'No rise'}
+            </span>
+            <span className="text-slate-400 mx-1.5">·</span>
+            <span>
+              ↓{' '}
+              {moonRiseSet.moonsetMs !== null
+                ? formatTime(roundToMinuteMs(moonRiseSet.moonsetMs), location.timezone)
+                : 'No set'}
+            </span>
           </div>
         </div>
 
